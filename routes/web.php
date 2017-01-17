@@ -11,6 +11,6 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'AuthController@index');
+Route::get('/easir', 'AuthController@easirOauthReceive');
+Route::get('/builder', 'AuthController@builder')->middleware('auth.easir');
