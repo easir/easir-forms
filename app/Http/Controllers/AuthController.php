@@ -23,11 +23,9 @@ class AuthController
      */
     public function index()
     {
-        if (!$this->request->session()->has('easir_oauth_state')) {
-            $this->request->session()->set('easir_oauth_state', str_random(40));
-        }
+        $this->request->session()->set('easir_oauth_state', str_random(40));
 
-        return view('welcome', [
+        return view('login', [
             'state' => $this->request->session()->get('easir_oauth_state'),
         ]);
     }
@@ -37,13 +35,14 @@ class AuthController
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      * @throws \Exception
      */
-    public function easirOauthReceive(Request $request)
+    public function easir(Request $request)
     {
         if (!$request->has('code') || !$request->session()->has('easir_oauth_state'))
             throw new \Exception('No auth code or state');
 
-        if ($request->session()->get('easir_oauth_state') != $request->get('state'))
+        if ($request->session()->get('easir_oauth_state') != $request->get('state')) {
             throw new \Exception('Invalid state');
+        }
 
         $client = new Client(['base_uri' => env('EASIR_AUTH_URL')]);
         $request = [
@@ -72,21 +71,5 @@ class AuthController
         }
 
         return redirect('/');
-    }
-
-    /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function builder()
-    {
-        $token = $this->request->session()->get('easir')['access_token'];
-        $client = new Client(['base_uri' => env('EASIR_API_URL'),
-            'headers' => ['Authorization' => "Bearer $token"],
-        ]);
-        $response = json_decode($client->request('GET', 'me')->getBody());
-
-        return view('builder', [
-            'user' => "{$response->first_name} {$response->last_name}"
-        ]);
     }
 }

@@ -11,6 +11,14 @@
 |
 */
 
-Route::get('/', 'AuthController@index');
-Route::get('/easir', 'AuthController@easirOauthReceive');
-Route::get('/builder', 'AuthController@builder')->middleware('auth.easir');
+
+// EASI'R Oauth
+Route::get('/',      'AuthController@index');
+Route::get('/easir', 'AuthController@easir');
+Route::get('/logout', function() {
+    app('session')->clear();
+    return redirect('/');
+});
+
+Route::get('/builder',  'BuilderController@builder')->middleware('auth.easir');
+Route::post('/builder', 'BuilderController@builderPost')->middleware('auth.easir');

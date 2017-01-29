@@ -23,16 +23,15 @@ class CheckEasirAuth
         } else {
             if (!$this->checkMe($request->session()->get('easir')['access_token'])) {
                 $authClient = new Client(['base_uri' => env('EASIR_AUTH_URL')]);
-                $request = [
-                    'client_id' => env('EASIR_CLIENT_ID'),
-                    'client_secret' => env('EASIR_CLIENT_SECRET'),
-                    'refresh_token' => $request->session()->get('easir')['refresh_token'],
-                ];
                 $response = $authClient->request('POST', 'token', [
                     'query' => [
                         'grant_type' => 'refresh_token'
                     ],
-                    'json' => $request,
+                    'json' => [
+                        'client_id' => env('EASIR_CLIENT_ID'),
+                        'client_secret' => env('EASIR_CLIENT_SECRET'),
+                        'refresh_token' => $request->session()->get('easir')['refresh_token'],
+                    ],
                     'http_errors' => false,
                 ]);
 
@@ -69,6 +68,12 @@ class CheckEasirAuth
 
         $response = $client->request('GET', 'me');
 
-        return $response->getStatusCode() == Response::HTTP_OK;
+        if ($response->getStatusCode() == Response::HTTP_OK)
+        {
+            session(['easir_user' => json_decode($response->getBody()->getContents())->first_name]);
+            return true;
+        }
+
+        return false;
     }
 }
